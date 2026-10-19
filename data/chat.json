@@ -42,14 +42,14 @@
         {
           "id": 0,
           "text": "Oui",
-          "voters": []
+          "voters": [
+            "Kaliflo20-dev"
+          ]
         },
         {
           "id": 1,
           "text": "Non",
-          "voters": [
-            "Kaliflo20-dev"
-          ]
+          "voters": []
         }
       ]
     },
