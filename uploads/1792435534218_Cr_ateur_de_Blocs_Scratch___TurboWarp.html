@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scratch 3.0 & TurboWarp Block Creator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@400;500;700&display=swap');
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: #F9F9F9;
+            user-select: none;
+        }
+
+        /* Styles visuels spécifiques aux blocs Scratch 3.0 */
+        .scratch-block {
+            display: inline-flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 13px;
+            color: white;
+            padding: 6px 10px;
+            gap: 6px;
+            position: relative;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+            transition: all 0.15s ease;
+            cursor: pointer;
+            margin: 10px 0;
+            width: fit-content;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+        }
+
+        /* Shapes */
+        .shape-command {
+            border-radius: 4px;
+            clip-path: polygon(
+                0 0, 12px 0, 15px 4px, 29px 4px, 32px 0, 100% 0,
+                100% calc(100% - 4px), calc(100% - 0px) 100%, 32px 100%, 29px calc(100% - 4px), 15px calc(100% - 4px), 12px 100%, 0 100%
+            );
+            padding-top: 8px;
+            padding-bottom: 8px;
+            min-height: 36px;
+        }
+
+        .shape-hat {
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            padding-top: 12px;
+            padding-bottom: 8px;
+            clip-path: polygon(
+                0 12px, 15px 2px, 40px 0px, 70px 3px, 90px 12px, 100% 12px,
+                100% calc(100% - 4px), calc(100% - 0px) 100%, 32px 100%, 29px calc(100% - 4px), 15px calc(100% - 4px), 12px 100%, 0 100%
+            );
+        }
+
+        .shape-reporter {
+            border-radius: 20px;
+            padding: 6px 14px;
+            min-height: 32px;
+        }
+
+        .shape-boolean {
+            clip-path: polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%);
+            padding: 6px 18px;
+            min-height: 32px;
+        }
+
+        .shape-cap {
+            border-radius: 4px 4px 0 0;
+            clip-path: polygon(
+                0 0, 12px 0, 15px 4px, 29px 4px, 32px 0, 100% 0,
+                100% 100%, 0 100%
+            );
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        .shape-conditional {
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0;
+            clip-path: none;
+        }
+
+        /* Custom Input Slots */
+        .scratch-input {
+            background-color: white;
+            color: #575E75;
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: normal;
+            border: 1px solid rgba(0,0,0,0.15);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 22px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+            text-shadow: none;
+        }
+
+        .scratch-input-boolean {
+            background-color: rgba(0, 0, 0, 0.15);
+            width: 24px;
+            height: 16px;
+            clip-path: polygon(5px 0%, calc(100% - 5px) 0%, 100% 50%, calc(100% - 5px) 100%, 5px 100%, 0% 50%);
+        }
+
+        .scratch-input-color {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 2px rgba(0,0,0,0.3);
+        }
+
+        .scratch-dropdown {
+            background-color: rgba(0, 0, 0, 0.15);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 8px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .scratch-matrix-icon {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1px;
+            background: rgba(0,0,0,0.2);
+            padding: 2px;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+        }
+        .scratch-matrix-dot {
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+        .scratch-matrix-dot.active {
+            opacity: 1;
+            background: #FF4D4D;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F1F1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #C1C1C1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #A8A8A8;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-gray-800">
+
+    <!-- Header Navigation Scratch -->
+    <header class="bg-[#4C97FF] text-white px-4 py-2.5 flex items-center justify-between shadow-md z-10">
+        <div class="flex items-center gap-3">
+            <div class="bg-white text-[#4C97FF] font-black tracking-wider text-xl px-2.5 py-0.5 rounded-md shadow-inner flex items-center gap-1">
+                <span>SCRATCH</span>
+                <span class="text-xs bg-[#FFAB19] text-white px-1.5 py-0.2 rounded font-bold">TW</span>
+            </div>
+            <h1 class="font-bold text-lg hidden sm:block">Éditeur & Générateur de Blocs Custom</h1>
+        </div>
+
+        <!-- Presets Quick Load -->
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-blue-100 hidden md:block">Modèles :</span>
+            <select id="presetSelect" onchange="loadPreset(this.value)" class="bg-blue-600 text-white text-xs px-2.5 py-1.5 rounded-lg border border-blue-400 focus:outline-none cursor-pointer hover:bg-blue-700 font-medium">
+                <option value="action_dropdown">Stack : Action avec Dropdown</option>
+                <option value="reporter_math">Reporter : Operation Math</option>
+                <option value="boolean_sensor">Boolean : Capteur d'état</option>
+                <option value="hat_event">Hat : Événement d'écoute</option>
+                <option value="matrix_led">Extension : Matrice LED 5x5</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+
+        <!-- LEFT PANEL: Controls & Settings -->
+        <div class="w-full md:w-1/2 lg:w-5/12 bg-white border-r border-gray-200 flex flex-col h-full overflow-y-auto">
+            
+            <div class="p-4 space-y-5">
+                
+                <!-- Section 1: Information de base -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="sliders" class="w-4 h-4 text-blue-500"></i> Propriétés Générales
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Catégorie</label>
+                            <select id="blockCategory" onchange="updateBlock()" class="w-full bg-white border border-gray-300 text-xs rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="motion">Mouvement (#4C97FF)</option>
+                                <option value="looks">Apparence (#9966FF)</option>
+                                <option value="sounds">Son (#CF63CF)</option>
+                                <option value="events">Événements (#FFBF00)</option>
+                                <option value="control">Contrôle (#FFAB19)</option>
+                                <option value="sensing">Capteurs (#4CBFE6)</option>
+                                <option value="operators">Opérateurs (#40BF4A)</option>
+                                <option value="variables">Variables (#FF8C1A)</option>
+                                <option value="myblocks">Mes Blocs (#FF6680)</option>
+                                <option value="extension" selected>Extension TurboWarp (#0FBD8C)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Forme du bloc</label>
+                            <select id="blockType" onchange="updateBlock()" class="w-full bg-white border border-gray-300 text-xs rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="command">Action (Stack)</option>
+                                <option value="reporter">Reporter (Valeur/Ovale)</option>
+                                <option value="Boolean">Booléen (Hexagone)</option>
+                                <option value="hat">Chapeau (Hat / Événement)</option>
+                                <option value="cap">Fin (Cap)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">ID Opcode (Fonction)</label>
+                            <input type="text" id="blockOpcode" value="myCustomBlock" oninput="updateBlock()" class="w-full bg-white border border-gray-300 text-xs rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono" placeholder="myBlockCode">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">ID d'Extension</label>
+                            <input type="text" id="extensionId" value="myExtension" oninput="updateBlock()" class="w-full bg-white border border-gray-300 text-xs rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono" placeholder="myExtension">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Structure des Arguments -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="layers" class="w-4 h-4 text-emerald-500"></i> Structure du texte & Arguments
+                        </h2>
+                        <button onclick="addArgument()" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition shadow-sm">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Ajouter un Élément
+                        </button>
+                    </div>
+
+                    <p class="text-[11px] text-gray-500">Construisez la phrase de votre bloc en alternant du texte fixe et des paramètres d'entrée.</p>
+
+                    <!-- Elements List Container -->
+                    <div id="argumentsContainer" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                        <!-- Items dynamically generated -->
+                    </div>
+                </div>
+
+                <!-- Section 3: TurboWarp Specific Options -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                        <i data-lucide="settings" class="w-4 h-4 text-purple-500"></i> Options avancées TurboWarp
+                    </h2>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer p-1.5 bg-white rounded border border-gray-200 hover:bg-gray-50">
+                            <input type="checkbox" id="optAsync" onchange="updateBlock()" class="rounded text-blue-600 focus:ring-0">
+                            <span class="font-medium text-gray-700">Asynchrone (Promise)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer p-1.5 bg-white rounded border border-gray-200 hover:bg-gray-50">
+                            <input type="checkbox" id="optTerminal" onchange="updateBlock()" class="rounded text-blue-600 focus:ring-0">
+                            <span class="font-medium text-gray-700">Terminal (Cap)</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Live Preview & JSON Editor -->
+        <div class="w-full md:w-1/2 lg:w-7/12 bg-slate-100 flex flex-col h-full overflow-hidden border-t md:border-t-0">
+            
+            <!-- Top Live Visual Preview Box -->
+            <div class="bg-white p-6 border-b border-gray-200 flex flex-col items-center justify-center min-h-[160px] relative shadow-inner">
+                <span class="absolute top-2 left-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                    <i data-lucide="eye" class="w-3 h-3"></i> Prévisualisation Scratch 3.0
+                </span>
+
+                <!-- Scratch Block Container -->
+                <div id="scratchPreviewContainer" class="my-4">
+                    <!-- Dynamic Scratch Render Block -->
+                </div>
+            </div>
+
+            <!-- JSON Bidirectional Editor -->
+            <div class="flex-1 flex flex-col bg-[#1E1E1E] text-gray-200 overflow-hidden">
+                <!-- Toolbar -->
+                <div class="bg-[#252526] px-4 py-2 border-b border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <button id="tabJsonBtn" onclick="switchTab('json')" class="text-xs font-semibold px-3 py-1 rounded bg-[#37373D] text-white flex items-center gap-1.5">
+                            <i data-lucide="code" class="w-3.5 h-3.5 text-yellow-400"></i> JSON Spec
+                        </button>
+                        <button id="tabJsBtn" onclick="switchTab('js')" class="text-xs font-semibold px-3 py-1 text-gray-400 hover:text-white px-3 py-1 rounded flex items-center gap-1.5">
+                            <i data-lucide="file-code" class="w-3.5 h-3.5 text-blue-400"></i> Extension JS TurboWarp
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="importJSON()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1 rounded flex items-center gap-1 transition" title="Importer ce JSON dans l'éditeur visuel">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importer JSON
+                        </button>
+                        <button onclick="exportFile()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded flex items-center gap-1 transition font-semibold">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Télécharger
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Editor Textarea Area -->
+                <div class="flex-1 p-3 font-mono text-xs overflow-hidden relative">
+                    <textarea id="jsonOutput" spellcheck="false" class="w-full h-full bg-transparent text-emerald-400 focus:outline-none resize-none font-mono leading-relaxed" placeholder="Code JSON ou JS ici..."></textarea>
+                </div>
+
+                <!-- Footer Status Bar -->
+                <div class="bg-[#007ACC] text-white text-[11px] px-3 py-0.5 flex items-center justify-between">
+                    <span id="statusMessage">Compatible Scratch 3.0 & TurboWarp Extensions</span>
+                    <span>UTF-8</span>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-900 text-white text-xs px-4 py-2.5 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 z-50">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMsg">Action réussie !</span>
+    </div>
+
+    <!-- Application Engine Logic -->
+    <script>
+        // Couleurs officielles des catégories Scratch 3.0
+        const CATEGORY_COLORS = {
+            motion: '#4C97FF',
+            looks: '#9966FF',
+            sounds: '#CF63CF',
+            events: '#FFBF00',
+            control: '#FFAB19',
+            sensing: '#4CBFE6',
+            operators: '#40BF4A',
+            variables: '#FF8C1A',
+            myblocks: '#FF6680',
+            extension: '#0FBD8C'
+        };
+
+        // Configuration initiale d'un bloc
+        let blockState = {
+            extensionId: 'myExtension',
+            opcode: 'customBlockAction',
+            category: 'extension',
+            type: 'command', // command, reporter, Boolean, hat, cap
+            items: [
+                { id: 1, type: 'text', value: 'jouer le son' },
+                { id: 2, type: 'dropdown', name: 'SOUND', default: 'meow', options: ['meow', 'pop', 'bark'] },
+                { id: 3, type: 'text', value: 'à la vitesse' },
+                { id: 4, type: 'number', name: 'SPEED', default: 100 }
+            ],
+            isAsync: false,
+            isTerminal: false
+        };
+
+        let currentTab = 'json';
+
+        // Initialisation de l'interface
+        window.onload = function() {
+            lucide.createIcons();
+            renderArgumentsList();
+            updateBlock();
+        };
+
+        // Changement de Modèle préconfiguré
+        function loadPreset(presetKey) {
+            if (presetKey === 'action_dropdown') {
+                blockState = {
+                    extensionId: 'myExtension',
+                    opcode: 'playSoundSpeed',
+                    category: 'sounds',
+                    type: 'command',
+                    items: [
+                        { id: 1, type: 'text', value: 'jouer le son' },
+                        { id: 2, type: 'dropdown', name: 'SOUND', default: 'miaulement', options: ['miaulement', 'aboiement', 'pop'] },
+                        { id: 3, type: 'text', value: 'à la vitesse' },
+                        { id: 4, type: 'number', name: 'SPEED', default: 100 }
+                    ]
+                };
+            } else if (presetKey === 'reporter_math') {
+                blockState = {
+                    extensionId: 'mathExt',
+                    opcode: 'calculatePower',
+                    category: 'operators',
+                    type: 'reporter',
+                    items: [
+                        { id: 1, type: 'number', name: 'BASE', default: 2 },
+                        { id: 2, type: 'text', value: 'puissance' },
+                        { id: 3, type: 'number', name: 'EXP', default: 3 }
+                    ]
+                };
+            } else if (presetKey === 'boolean_sensor') {
+                blockState = {
+                    extensionId: 'sensorExt',
+                    opcode: 'isKeyPressed',
+                    category: 'sensing',
+                    type: 'Boolean',
+                    items: [
+                        { id: 1, type: 'text', value: 'touche' },
+                        { id: 2, type: 'dropdown', name: 'KEY', default: 'espace', options: ['espace', 'flèche haut', 'entrée'] },
+                        { id: 3, type: 'text', value: 'pressée ?' }
+                    ]
+                };
+            } else if (presetKey === 'hat_event') {
+                blockState = {
+                    extensionId: 'gameEvents',
+                    opcode: 'whenPlayerScores',
+                    category: 'events',
+                    type: 'hat',
+                    items: [
+                        { id: 1, type: 'text', value: 'quand le joueur atteint le score' },
+                        { id: 2, type: 'number', name: 'SCORE', default: 10 }
+                    ]
+                };
+            } else if (presetKey === 'matrix_led') {
+                blockState = {
+                    extensionId: 'displayExt',
+                    opcode: 'showMatrixPattern',
+                    category: 'extension',
+                    type: 'command',
+                    items: [
+                        { id: 1, type: 'text', value: 'afficher la matrice' },
+                        { id: 2, type: 'matrix', name: 'MATRIX', default: '0101011111111110111000100' }
+                    ]
+                };
+            }
+
+            document.getElementById('blockCategory').value = blockState.category;
+            document.getElementById('blockType').value = blockState.type;
+            document.getElementById('blockOpcode').value = blockState.opcode;
+            document.getElementById('extensionId').value = blockState.extensionId;
+
+            renderArgumentsList();
+            updateBlock();
+            showToast("Modèle chargé !");
+        }
+
+        // Ajouter un nouvel argument/texte au constructeur
+        function addArgument() {
+            const newId = Date.now();
+            blockState.items.push({
+                id: newId,
+                type: 'text',
+                value: 'texte'
+            });
+            renderArgumentsList();
+            updateBlock();
+        }
+
+        // Supprimer un argument
+        function removeArgument(id) {
+            blockState.items = blockState.items.filter(item => item.id !== id);
+            renderArgumentsList();
+            updateBlock();
+        }
+
+        // Mettre à jour la structure visuelle des contrôles
+        function renderArgumentsList() {
+            const container = document.getElementById('argumentsContainer');
+            container.innerHTML = '';
+
+            blockState.items.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = "bg-white p-2.5 rounded-lg border border-gray-200 flex flex-col gap-2 text-xs shadow-sm";
+
+                let optionsHtml = '';
+                if (item.type === 'dropdown') {
+                    const optionsStr = item.options ? item.options.join(', ') : '';
+                    optionsHtml = `
+                        <div class="grid grid-cols-2 gap-2 mt-1">
+                            <div>
+                                <label class="text-[10px] text-gray-500 block">Valeur par défaut</label>
+                                <input type="text" value="${item.default || ''}" oninput="updateItemProp(${item.id}, 'default', this.value)" class="w-full border rounded p-1 text-xs">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500 block">Options (séparées virgule)</label>
+                                <input type="text" value="${optionsStr}" onchange="updateDropdownOptions(${item.id}, this.value)" class="w-full border rounded p-1 text-xs" placeholder="opt1, opt2">
+                            </div>
+                        </div>
+                    `;
+                } else if (item.type !== 'text') {
+                    optionsHtml = `
+                        <div class="grid grid-cols-2 gap-2 mt-1">
+                            <div>
+                                <label class="text-[10px] text-gray-500 block">Valeur par défaut</label>
+                                <input type="text" value="${item.default !== undefined ? item.default : ''}" oninput="updateItemProp(${item.id}, 'default', this.value)" class="w-full border rounded p-1 text-xs">
+                            </div>
+                        </div>
+                    `;
+                }
+
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-gray-400 font-bold">${index + 1}.</span>
+                        <select onchange="updateItemType(${item.id}, this.value)" class="bg-slate-100 border rounded p-1 text-xs font-semibold">
+                            <option value="text" ${item.type === 'text' ? 'selected' : ''}>Texte Fixe</option>
+                            <option value="number" ${item.type === 'number' ? 'selected' : ''}>Entrée : Nombre / Texte</option>
+                            <option value="dropdown" ${item.type === 'dropdown' ? 'selected' : ''}>Entrée : Menu Déroulant</option>
+                            <option value="boolean" ${item.type === 'boolean' ? 'selected' : ''}>Entrée : Booléen</option>
+                            <option value="color" ${item.type === 'color' ? 'selected' : ''}>Entrée : Couleur</option>
+                            <option value="matrix" ${item.type === 'matrix' ? 'selected' : ''}>Entrée : Matrice LED 5x5</option>
+                        </select>
+
+                        ${item.type === 'text' ? `
+                            <input type="text" value="${item.value || ''}" oninput="updateItemProp(${item.id}, 'value', this.value)" class="flex-1 border rounded p-1 text-xs" placeholder="Texte de l'étiquette">
+                        ` : `
+                            <input type="text" value="${item.name || ''}" oninput="updateItemProp(${item.id}, 'name', this.value)" class="flex-1 border rounded p-1 text-xs font-mono text-blue-600" placeholder="NOM_ARGUMENT">
+                        `}
+
+                        <button onclick="removeArgument(${item.id})" class="text-red-400 hover:text-red-600 p-1 rounded">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    ${optionsHtml}
+                `;
+                container.appendChild(row);
+            });
+
+            lucide.createIcons();
+        }
+
+        function updateItemType(id, newType) {
+            const item = blockState.items.find(i => i.id === id);
+            if (!item) return;
+
+            item.type = newType;
+            if (newType !== 'text' && !item.name) {
+                item.name = 'ARG_' + Math.floor(Math.random() * 1000);
+            }
+            if (newType === 'dropdown' && !item.options) {
+                item.options = ['option1', 'option2'];
+                item.default = 'option1';
+            }
+            renderArgumentsList();
+            updateBlock();
+        }
+
+        function updateItemProp(id, prop, value) {
+            const item = blockState.items.find(i => i.id === id);
+            if (item) {
+                item[prop] = value;
+                updateBlock();
+            }
+        }
+
+        function updateDropdownOptions(id, rawValue) {
+            const item = blockState.items.find(i => i.id === id);
+            if (item) {
+                item.options = rawValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                if (!item.options.includes(item.default)) {
+                    item.default = item.options[0] || '';
+                }
+                updateBlock();
+            }
+        }
+
+        // Mettre à jour l'ensemble du bloc et générer les sorties
+        function updateBlock() {
+            blockState.category = document.getElementById('blockCategory').value;
+            blockState.type = document.getElementById('blockType').value;
+            blockState.opcode = document.getElementById('blockOpcode').value || 'myBlock';
+            blockState.extensionId = document.getElementById('extensionId').value || 'myExtension';
+
+            renderScratchBlockPreview();
+            generateOutputs();
+        }
+
+        // Rendu Visuel du Bloc Scratch dans le DOM
+        function renderScratchBlockPreview() {
+            const container = document.getElementById('scratchPreviewContainer');
+            container.innerHTML = '';
+
+            const color = CATEGORY_COLORS[blockState.category] || CATEGORY_COLORS.extension;
+
+            const block = document.createElement('div');
+            block.className = `scratch-block shape-${blockState.type.toLowerCase()}`;
+            block.style.backgroundColor = color;
+
+            blockState.items.forEach(item => {
+                if (item.type === 'text') {
+                    const span = document.createElement('span');
+                    span.textContent = item.value || '';
+                    block.appendChild(span);
+                } else if (item.type === 'number') {
+                    const input = document.createElement('div');
+                    input.className = 'scratch-input';
+                    input.textContent = item.default !== undefined ? item.default : '10';
+                    block.appendChild(input);
+                } else if (item.type === 'dropdown') {
+                    const drop = document.createElement('div');
+                    drop.className = 'scratch-dropdown';
+                    drop.innerHTML = `<span>${item.default || (item.options ? item.options[0] : '')}</span> <svg width="8" height="6" viewBox="0 0 8 6" fill="white"><path d="M4 6L0 0h8L4 6z"/></svg>`;
+                    block.appendChild(drop);
+                } else if (item.type === 'boolean') {
+                    const bool = document.createElement('div');
+                    bool.className = 'scratch-input-boolean';
+                    block.appendChild(bool);
+                } else if (item.type === 'color') {
+                    const col = document.createElement('div');
+                    col.className = 'scratch-input-color';
+                    col.style.backgroundColor = item.default || '#FF0000';
+                    block.appendChild(col);
+                } else if (item.type === 'matrix') {
+                    const matrix = document.createElement('div');
+                    matrix.className = 'scratch-matrix-icon';
+                    for(let i=0; i<25; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = `scratch-matrix-dot ${i % 2 === 0 ? 'active' : ''}`;
+                        matrix.appendChild(dot);
+                    }
+                    block.appendChild(matrix);
+                }
+            });
+
+            container.appendChild(block);
+        }
+
+        // Générer la spec JSON et le JS TurboWarp
+        function generateOutputs() {
+            // Construction du format spec Scratch 3.0 / TurboWarp
+            let textSpec = "";
+            let argIndex = 1;
+            const argsObj = {};
+            const menusObj = {};
+
+            blockState.items.forEach(item => {
+                if (item.type === 'text') {
+                    textSpec += item.value + " ";
+                } else {
+                    const placeholder = `[${item.name || 'ARG' + argIndex}]`;
+                    textSpec += placeholder + " ";
+
+                    let argType = "string";
+                    if (item.type === 'number') argType = "number";
+                    if (item.type === 'boolean') argType = "boolean";
+                    if (item.type === 'color') argType = "color";
+                    if (item.type === 'matrix') argType = "matrix";
+
+                    const argDef = {
+                        type: argType,
+                        defaultValue: item.default || ''
+                    };
+
+                    if (item.type === 'dropdown') {
+                        const menuName = `menu_${item.name}`;
+                        argDef.menu = menuName;
+                        menusObj[menuName] = {
+                            acceptReporters: true,
+                            items: item.options || ['option1']
+                        };
+                    }
+
+                    argsObj[item.name || 'ARG' + argIndex] = argDef;
+                    argIndex++;
+                }
+            });
+
+            const jsonSpec = {
+                opcode: blockState.opcode,
+                blockType: blockState.type,
+                text: textSpec.trim(),
+                arguments: argsObj,
+                menus: Object.keys(menusObj).length > 0 ? menusObj : undefined
+            };
+
+            const fullJsCode = generateTurboWarpJs(jsonSpec);
+
+            const textarea = document.getElementById('jsonOutput');
+            if (currentTab === 'json') {
+                textarea.value = JSON.stringify(jsonSpec, null, 2);
+            } else {
+                textarea.value = fullJsCode;
+            }
+        }
+
+        // Générateur de code d'extension JavaScript TurboWarp
+        function generateTurboWarpJs(spec) {
+            return `(function(Scratch) {
+  'use strict';
+
+  class ${capitalize(blockState.extensionId)}Extension {
+    getInfo() {
+      return {
+        id: '${blockState.extensionId}',
+        name: 'Extension Personnalisée',
+        color1: '${CATEGORY_COLORS[blockState.category]}',
+        blocks: [
+          ${JSON.stringify(spec, null, 10).replace(/\n/g, '\n          ')}
+        ]
+      };
+    }
+
+    ${blockState.opcode}(args) {
+      // Code d'exécution de votre bloc ici
+      console.log('Bloc exécuté avec arguments:', args);
+      ${blockState.type === 'reporter' ? "return 'Résultat';" : ""}
+      ${blockState.type === 'Boolean' ? "return true;" : ""}
+    }
+  }
+
+  Scratch.extensions.register(new ${capitalize(blockState.extensionId)}Extension());
+})(Scratch);`;
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Changement d'onglet JSON / JS
+        function switchTab(tab) {
+            currentTab = tab;
+            const jsonBtn = document.getElementById('tabJsonBtn');
+            const jsBtn = document.getElementById('tabJsBtn');
+
+            if (tab === 'json') {
+                jsonBtn.className = "text-xs font-semibold px-3 py-1 rounded bg-[#37373D] text-white flex items-center gap-1.5";
+                jsBtn.className = "text-xs font-semibold text-gray-400 hover:text-white px-3 py-1 rounded flex items-center gap-1.5";
+            } else {
+                jsBtn.className = "text-xs font-semibold px-3 py-1 rounded bg-[#37373D] text-white flex items-center gap-1.5";
+                jsonBtn.className = "text-xs font-semibold text-gray-400 hover:text-white px-3 py-1 rounded flex items-center gap-1.5";
+            }
+            generateOutputs();
+        }
+
+        // Importation du JSON dans le visuel
+        function importJSON() {
+            const raw = document.getElementById('jsonOutput').value;
+            try {
+                const parsed = JSON.parse(raw);
+                if (!parsed.opcode) throw new Error("Le JSON doit posséder un champ 'opcode'.");
+
+                blockState.opcode = parsed.opcode || 'customOpcode';
+                blockState.type = parsed.blockType || 'command';
+                document.getElementById('blockType').value = blockState.type;
+                document.getElementById('blockOpcode').value = blockState.opcode;
+
+                // Reconstruction des items
+                const newItems = [];
+                const textStr = parsed.text || '';
+                const regex = /\[(.*?)\]/g;
+                let lastIdx = 0;
+                let match;
+
+                let idCounter = 1;
+                while ((match = regex.exec(textStr)) !== null) {
+                    const staticText = textStr.substring(lastIdx, match.index).trim();
+                    if (staticText) {
+                        newItems.push({ id: idCounter++, type: 'text', value: staticText });
+                    }
+
+                    const argName = match[1];
+                    const argConfig = (parsed.arguments && parsed.arguments[argName]) ? parsed.arguments[argName] : {};
+
+                    let type = 'number';
+                    if (argConfig.type === 'boolean') type = 'boolean';
+                    if (argConfig.type === 'color') type = 'color';
+                    if (argConfig.type === 'matrix') type = 'matrix';
+                    if (argConfig.menu) type = 'dropdown';
+
+                    const itemObj = {
+                        id: idCounter++,
+                        type: type,
+                        name: argName,
+                        default: argConfig.defaultValue || ''
+                    };
+
+                    if (type === 'dropdown' && parsed.menus && parsed.menus[argConfig.menu]) {
+                        itemObj.options = parsed.menus[argConfig.menu].items || ['option1'];
+                    }
+
+                    newItems.push(itemObj);
+                    lastIdx = regex.lastIndex;
+                }
+
+                const remainingText = textStr.substring(lastIdx).trim();
+                if (remainingText) {
+                    newItems.push({ id: idCounter++, type: 'text', value: remainingText });
+                }
+
+                if (newItems.length > 0) {
+                    blockState.items = newItems;
+                }
+
+                renderArgumentsList();
+                updateBlock();
+                showToast("JSON importé avec succès !");
+
+            } catch (err) {
+                alert("Erreur lors de l'importation du JSON : " + err.message);
+            }
+        }
+
+        // Téléchargement du fichier .json ou .js
+        function exportFile() {
+            const text = document.getElementById('jsonOutput').value;
+            const ext = currentTab === 'json' ? 'json' : 'js';
+            const filename = `${blockState.opcode || 'scratch_block'}.${ext}`;
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+
+            showToast(`Fichier ${filename} téléchargé !`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
