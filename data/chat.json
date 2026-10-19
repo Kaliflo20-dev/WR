@@ -28,5 +28,29 @@
     },
     "poll": null,
     "timestamp": "2026-10-19T18:45:35.933Z"
+  },
+  {
+    "id": "1792435561849",
+    "user": "Kaliflo20-dev",
+    "avatar": "https://raw.githubusercontent.com/Kaliflo20-dev/WR/main/users/avatars/Kaliflo20-dev_1792430112614.png",
+    "text": "",
+    "file": null,
+    "poll": {
+      "id": "poll_1792435561836",
+      "question": "C bien ?",
+      "options": [
+        {
+          "id": 0,
+          "text": "Oui",
+          "voters": []
+        },
+        {
+          "id": 1,
+          "text": "Non",
+          "voters": []
+        }
+      ]
+    },
+    "timestamp": "2026-10-19T18:46:01.849Z"
   }
 ]
