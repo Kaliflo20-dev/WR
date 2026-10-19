@@ -42,7 +42,9 @@
         {
           "id": 0,
           "text": "Oui",
-          "voters": []
+          "voters": [
+            "Kaliflo20-dev"
+          ]
         },
         {
           "id": 1,
